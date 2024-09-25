@@ -1,8 +1,8 @@
-// Todo.test.js
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Todo from '../components/Todo'; 
-import axios from 'axios';
+// src/test/Todo.test.js
+const React = require('react');
+const { render, screen, fireEvent, waitFor } = require('@testing-library/react');
+const Todo = require('../components/Todo').default; // Adjusted to use CommonJS syntax
+const axios = require('axios');
 
 // Mocking axios
 jest.mock('axios');
