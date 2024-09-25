@@ -5,18 +5,19 @@ const Todo = require('../components/Todo');
 const axios = require('axios');
 const sinon = require('sinon');
 
+const todoItems = [
+    { _id: '1', task: 'Task 1', status: 'Pending', deadline: '2024-09-30T12:00:00Z' },
+    { _id: '2', task: 'Task 2', status: 'Completed', deadline: '2024-09-30T12:00:00Z' },
+];
+
 // Mocking axios
 sinon.stub(axios, 'get').returns(Promise.resolve({ data: todoItems }));
 sinon.stub(axios, 'post').returns(Promise.resolve({ data: { task: 'New Task', status: 'Pending', deadline: '2024-09-30T12:00:00Z' } }));
 sinon.stub(axios, 'delete').returns(Promise.resolve({ data: {} }));
 
 describe('Todo Component', () => {
-    const todoItems = [
-        { _id: '1', task: 'Task 1', status: 'Pending', deadline: '2024-09-30T12:00:00Z' },
-        { _id: '2', task: 'Task 2', status: 'Completed', deadline: '2024-09-30T12:00:00Z' },
-    ];
-
     beforeEach(() => {
+        // Mock the axios get request
         axios.get.resolves({ data: todoItems });
     });
 
