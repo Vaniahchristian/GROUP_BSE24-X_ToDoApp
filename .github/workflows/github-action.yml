@@ -1,0 +1,66 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step 2: Cache Node.js dependencies
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            frontend/node_modules
+            backend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node
+
+      # Step 3: Set up Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'  # or your preferred version
+
+      # Step 4: Install front-end dependencies
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      # Step 5: Install back-end dependencies
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm install
+
+      # Step 6: Run front-end tests (using Mocha)
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm test
+
+      # Step 7: Run back-end tests (using Mocha)
+      - name: Run backend tests
+        run: |
+          cd backend
+          npm test
+
+      # Step 8: Build front-end for production
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
