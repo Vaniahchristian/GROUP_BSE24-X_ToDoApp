@@ -1,7 +1,7 @@
 // Todo.test.js
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Todo from '../components/Todo'; 
+import Todo from '../frontend/src/components/Todo'; 
 import axios from 'axios';
 
 // Mocking axios
