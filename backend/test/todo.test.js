@@ -3,8 +3,8 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
-const app = require('../../../backend/server'); // Adjust path if necessary
-const Todo = require('../../../backend/models/Todo'); // Adjust path if necessary
+const app = require('../server'); // Adjust path if necessary
+const Todo = require('../models/Todo'); // Adjust path if necessary
 const { expect } = chai;
 
 chai.use(chaiHttp);
