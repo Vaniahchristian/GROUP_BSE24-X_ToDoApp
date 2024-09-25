@@ -1,11 +1,14 @@
-// src/test/Todo.test.js
+// Todo.test.js
 const React = require('react');
 const { render, screen, fireEvent, waitFor } = require('@testing-library/react');
-const Todo = require('../components/Todo').default; // Adjusted to use CommonJS syntax
+const Todo = require('../components/Todo');
 const axios = require('axios');
+const sinon = require('sinon');
 
 // Mocking axios
-jest.mock('axios');
+sinon.stub(axios, 'get').returns(Promise.resolve({ data: todoItems }));
+sinon.stub(axios, 'post').returns(Promise.resolve({ data: { task: 'New Task', status: 'Pending', deadline: '2024-09-30T12:00:00Z' } }));
+sinon.stub(axios, 'delete').returns(Promise.resolve({ data: {} }));
 
 describe('Todo Component', () => {
     const todoItems = [
@@ -14,17 +17,17 @@ describe('Todo Component', () => {
     ];
 
     beforeEach(() => {
-        // Mock the axios get request
-        axios.get.mockResolvedValue({ data: todoItems });
+        axios.get.resolves({ data: todoItems });
+    });
+
+    afterEach(() => {
+        sinon.restore(); // Restore original methods after each test
     });
 
     it('renders Todo component and fetches todo list', async () => {
         render(<Todo />);
-
-        // Check if the heading is rendered
         expect(screen.getByText(/Todo List/i)).toBeInTheDocument();
 
-        // Wait for the todo items to be rendered
         await waitFor(() => {
             expect(screen.getByText('Task 1')).toBeInTheDocument();
             expect(screen.getByText('Task 2')).toBeInTheDocument();
@@ -34,9 +37,6 @@ describe('Todo Component', () => {
     it('allows adding a new task', async () => {
         render(<Todo />);
 
-        // Mock the axios post request for adding a task
-        axios.post.mockResolvedValue({ data: { task: 'New Task', status: 'Pending', deadline: '2024-09-30T12:00:00Z' } });
-
         // Add new task
         fireEvent.change(screen.getByPlaceholderText(/Enter Task/i), { target: { value: 'New Task' } });
         fireEvent.change(screen.getByPlaceholderText(/Enter Status/i), { target: { value: 'Pending' } });
@@ -44,7 +44,6 @@ describe('Todo Component', () => {
 
         fireEvent.click(screen.getByText(/Add Task/i));
 
-        // Check if the new task is added to the list
         await waitFor(() => {
             expect(screen.getByText('New Task')).toBeInTheDocument();
         });
@@ -53,23 +52,18 @@ describe('Todo Component', () => {
     it('allows editing a task', async () => {
         render(<Todo />);
 
-        // Wait for the todo items to be rendered
         await waitFor(() => {
             expect(screen.getByText('Task 1')).toBeInTheDocument();
         });
 
-        // Click edit button
         fireEvent.click(screen.getAllByText(/Edit/i)[0]);
 
-        // Edit the task
         fireEvent.change(screen.getByDisplayValue('Task 1'), { target: { value: 'Updated Task' } });
         fireEvent.change(screen.getByDisplayValue('Pending'), { target: { value: 'In Progress' } });
         fireEvent.change(screen.getByDisplayValue('2024-09-30T12:00:00Z'), { target: { value: '2024-10-01T12:00:00Z' } });
 
-        // Save the edited task
         fireEvent.click(screen.getByText(/Save/i));
 
-        // Check if the task is updated
         await waitFor(() => {
             expect(screen.getByText('Updated Task')).toBeInTheDocument();
         });
@@ -78,18 +72,12 @@ describe('Todo Component', () => {
     it('allows deleting a task', async () => {
         render(<Todo />);
 
-        // Mock the axios delete request
-        axios.delete.mockResolvedValue({ data: {} });
-
-        // Wait for the todo items to be rendered
         await waitFor(() => {
             expect(screen.getByText('Task 1')).toBeInTheDocument();
         });
 
-        // Delete the task
         fireEvent.click(screen.getAllByText(/Delete/i)[0]);
 
-        // Check if the task is removed
         await waitFor(() => {
             expect(screen.queryByText('Task 1')).not.toBeInTheDocument();
         });
