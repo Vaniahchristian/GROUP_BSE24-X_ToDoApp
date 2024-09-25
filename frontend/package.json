@@ -17,7 +17,6 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    
     "eject": "react-scripts eject",
     "test": "mocha --exit"
   },
@@ -38,5 +37,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "mocha": "^10.7.3"
   }
 }
