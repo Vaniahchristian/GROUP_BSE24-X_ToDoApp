@@ -58,7 +58,7 @@ jobs:
           cd backend
           chmod +x ./node_modules/.bin/mocha
 
-      # Step 7: Run front-end tests (using Mocha)
+      # Step 7: Run front-end tests (using Jest)
       - name: Run frontend tests
         run: |
           cd frontend
