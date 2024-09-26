@@ -1,6 +1,5 @@
-//todoList.js
-
-const mongoose = require('mongoose');
+// todoList.js
+import mongoose from 'mongoose';
 
 const todoSchema = new mongoose.Schema({
     task: {
@@ -16,5 +15,5 @@ const todoSchema = new mongoose.Schema({
     },
 });
 
-
-module.exports = mongoose.model("Todo", todoSchema);
+// Use export default for ES module syntax
+export default mongoose.model("Todo", todoSchema);
