@@ -1,90 +1,95 @@
-import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import Todo from "../components/Todo"; // Adjust the import path as necessary
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
+import Todo from '../components/Todo';
 
-// Mocking axios to avoid actual API calls during tests
 jest.mock('axios');
 
-describe("Todo Component", () => {
+describe('Todo Component', () => {
+  const mockTodoList = [
+    { _id: '1', task: 'Task 1', status: 'Pending', deadline: '2024-09-26T10:00:00' },
+    { _id: '2', task: 'Task 2', status: 'Completed', deadline: '2024-09-27T14:00:00' },
+  ];
+
+  // Suppress console errors
+  const originalError = console.error;
+  beforeAll(() => {
+    console.error = jest.fn();
+  });
+
+  afterAll(() => {
+    console.error = originalError;
+  });
+
   beforeEach(() => {
-    // Mocking the API response for the getTodoList call
-    axios.get.mockResolvedValue({ data: [{ _id: '1', task: 'Test Task', status: 'Pending', deadline: '2024-12-31T12:00:00Z' }] });
+    axios.get.mockResolvedValue({ data: mockTodoList });
+    axios.post.mockResolvedValue({});
+    axios.delete.mockResolvedValue({});
   });
+     
 
-  test("always passes", () => {
-    expect(true).toBe(true);
-  });
-
-  test("renders without crashing", () => {
+   test("renders without crashing", () => {
     render(<Todo />);
-  });
+    });
+  
 
-  test("displays the correct title", () => {
+  test('edits a task', async () => {
     render(<Todo />);
-    const titleElement = screen.getByText(/Todo List/i);
-    expect(titleElement).toBeInTheDocument(); // Checks if the title is rendered
-  });
-
-  test("renders a task from the todo list", () => {
-    render(<Todo />);
-    const taskElement = screen.getByText(/Test Task/i);
-    expect(taskElement).toBeInTheDocument(); // Checks if the test task is rendered
-  });
-
-  test("allows user to input a new task", () => {
-    render(<Todo />);
-
-    // Input the new task
-    fireEvent.change(screen.getByPlaceholderText(/Enter Task/i), {
-      target: { value: 'New Task' },
+    await waitFor(() => {
+      const editButtons = screen.getAllByText('Edit');
+      fireEvent.click(editButtons[0]);
     });
 
-    // Input the new status
-    fireEvent.change(screen.getByPlaceholderText(/Enter Status/i), {
-      target: { value: 'In Progress' },
-    });
+    const taskInput = screen.getByDisplayValue('Task 1');
+    fireEvent.change(taskInput, { target: { value: 'Updated Task 1' } });
 
-    // Input the new deadline
-    fireEvent.change(screen.getByLabelText(/Deadline/i), {
-      target: { value: '2024-12-31T12:00' },
-    });
+    const saveButton = screen.getByText('Save');
+    fireEvent.click(saveButton);
 
-    // Check if the inputs contain the correct values
-    expect(screen.getByPlaceholderText(/Enter Task/i).value).toBe('New Task');
-    expect(screen.getByPlaceholderText(/Enter Status/i).value).toBe('In Progress');
-    expect(screen.getByLabelText(/Deadline/i).value).toBe('2024-12-31T12:00');
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith('http://localhost:3001/updateTodoList/1', expect.any(Object));
+    });
   });
 
-  test("submits a new task", () => {
+  test('deletes a task', async () => {
+    render(<Todo />);
+    await waitFor(() => {
+      const deleteButtons = screen.getAllByText('Delete');
+      fireEvent.click(deleteButtons[0]);
+    });
+
+    await waitFor(() => {
+      expect(axios.delete).toHaveBeenCalledWith('http://localhost:3001/deleteTodoList/1');
+    });
+  });
+
+  test('displays error when adding task with empty fields', async () => {
+    const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
     render(<Todo />);
 
-    // Input the new task
-    fireEvent.change(screen.getByPlaceholderText(/Enter Task/i), {
-      target: { value: 'New Task' },
+    const addButton = screen.getByRole('button', { name: /Add Task/i });
+    fireEvent.click(addButton);
+
+    expect(alertMock).toHaveBeenCalledWith('All fields must be filled out.');
+    alertMock.mockRestore();
+  });
+
+  test('displays error when saving edited task with empty fields', async () => {
+    const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
+    render(<Todo />);
+    
+    await waitFor(() => {
+      const editButtons = screen.getAllByText('Edit');
+      fireEvent.click(editButtons[0]);
     });
 
-    // Input the new status
-    fireEvent.change(screen.getByPlaceholderText(/Enter Status/i), {
-      target: { value: 'In Progress' },
-    });
+    const taskInput = screen.getByDisplayValue('Task 1');
+    fireEvent.change(taskInput, { target: { value: '' } });
 
-    // Input the new deadline
-    fireEvent.change(screen.getByLabelText(/Deadline/i), {
-      target: { value: '2024-12-31T12:00' },
-    });
+    const saveButton = screen.getByText('Save');
+    fireEvent.click(saveButton);
 
-    // Mocking the post response
-    axios.post.mockResolvedValue({ data: { success: true } });
-
-    // Click the add task button
-    fireEvent.click(screen.getByText(/Add Task/i));
-
-    // Optionally, you could check that the API was called
-    expect(axios.post).toHaveBeenCalledWith('http://localhost:3001/addTodoList', {
-      task: 'New Task',
-      status: 'In Progress',
-      deadline: '2024-12-31T12:00',
-    });
+    expect(alertMock).toHaveBeenCalledWith('All fields must be filled out.');
+    alertMock.mockRestore();
   });
 });
