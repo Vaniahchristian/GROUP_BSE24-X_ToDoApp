@@ -33,7 +33,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: '18'  # or your preferred version
 
       # Step 4: Install front-end dependencies
       - name: Install frontend dependencies
@@ -47,12 +47,22 @@ jobs:
           cd backend
           npm install
 
-      # Step 6: Ensure Mocha has execution permissions
-      - name: Give Mocha execution permissions
+      # Step 6: Give execute permissions to Mocha (after install)
+      - name: Set executable permissions for Mocha (frontend)
         run: |
+          cd frontend
           chmod +x ./node_modules/.bin/mocha
 
+      - name: Set executable permissions for Mocha (backend)
+        run: |
+          cd backend
+          chmod +x ./node_modules/.bin/mocha
 
+      # Step 7: Run front-end tests (using Mocha)
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm test
 
       # Step 8: Run back-end tests (using Mocha)
       - name: Run backend tests
